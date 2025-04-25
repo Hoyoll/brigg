@@ -1,4 +1,4 @@
-module github.com/Hoyoll/brick
+module github.com/Hoyoll/brigg
 
 go 1.24.1
 
