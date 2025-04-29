@@ -1,73 +1,57 @@
 package brigg
 
-import "image/color"
-
-type Root interface {
-	IsPure() bool
-	SetPureness(bool)
-	GetStyle() *Style
-	Listen() *Listen
-	GetIO() *Listen
-	State() *StateMap
-	ChangeState(State)
-}
+// type Root interface {
+// 	GetStyle() *Style
+// 	GetStyleId() int
+// 	GetIO() map[State][]any
+// 	State() *StateMap
+// 	ChangeState(State)
+// }
 
 type Composer interface {
 	Render()
-	Compose(*Tree)
-	Position(*Tree)
-	GetDimension() (float32, float32)
-	SetPosition(float32, float32)
-	GetPosition() (float32, float32)
-	CheckIO(Root) bool
-}
+	// Compose(*Tree)
 
-type Component interface {
-	Box | Text
+	CalcPos(int, int, []int)
+	CalcDim(int, int, []int)
+	GetDim() (float32, float32)
+	GetPos() (float32, float32)
+	CheckIO(*Element) bool
 }
 
 type Tree struct {
+	Pure   bool
+	Genus  Genus
 	Self   int   // indice for Leaf
 	Parent int   // indice for Leaf
 	Branch []int // indices for Tree
 }
 
-type Leaf struct {
-	Bone   int // indice for Root
-	Shadow int // indice for Composer
-	Genus  Genus
+func (t *Tree) Bone() *Element {
+	l := Leaves.Items[t.Self]
+	return &Bones.Items[l.Bone]
 }
 
-type Listen struct {
-	State map[State]func(*Style)
-	Key   map[int]func(*Style)
-}
-
-func (l *Listen) On(s State, f func(*Style)) {
-	l.State[s] = f
-}
-
-func (l *Listen) OnKey(key int, f func(*Style)) {
-	l.Key[key] = f
-}
-
-func (l *Listen) Trigger(s State, style *Style) {
-	fun, ok := l.State[s]
-	if ok {
-		fun(style)
+func (t *Tree) Child(child ...*Tree) {
+	for _, v := range child {
+		t.Branch = append(t.Branch, Trees.Add(*v))
 	}
 }
 
-type StateMap struct {
-	item map[State]int
+type Leaf struct {
+	Bone int // indice for Root
+	// Shadow   int           // indice for Composers
+	Renderer map[Genus]int // map of Genus and Composer indc
 }
 
-func (s *StateMap) Add(state State, sty *Style) {
-	s.item[state] = Styles.Add(*sty)
+type StateMap struct {
+	Style  map[State]int
+	Listen map[State]func(*Style) bool
+	Key    map[State][]any
 }
 
 func (s *StateMap) Get(state State) *Style {
-	style, ok := s.item[state]
+	style, ok := s.Style[state]
 	if !ok {
 		return nil
 	}
@@ -75,20 +59,27 @@ func (s *StateMap) Get(state State) *Style {
 	return st
 }
 
-type Style struct {
-	Align     Align
-	Gravity   Gravity
-	PaddingY  float32
-	PaddingX  float32
-	MaxHeight float32
-	MaxWidth  float32
-	Height    float32
-	Width     float32
-	Spacing   float32
-	FontSize  float32
-	Radius    float32
-	Gap       float32
-	Color     *color.RGBA
-	Text      *string
-	FontPath  *string
+func (s *StateMap) Add(st State, sty *Style) func(
+	func(*Style) bool) {
+
+	s.Style[st] = Styles.Add(*sty)
+	return func(f func(*Style) bool) {
+		s.Listen[st] = f
+	}
+}
+
+func (s *StateMap) OnKey(st State, key ...any) {
+	s.Key[st] = key
+}
+
+func (s *StateMap) Trigger(st State) bool {
+	styleid, ok := s.Style[st]
+	if !ok {
+		return false
+	}
+	fun, funok := s.Listen[st]
+	if !funok {
+		return true
+	}
+	return fun(&Styles.Items[styleid])
 }

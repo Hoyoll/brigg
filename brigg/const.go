@@ -1,5 +1,7 @@
 package brigg
 
+const DEFID = 0
+
 type State int8
 
 const (

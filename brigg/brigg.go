@@ -4,46 +4,45 @@ import "github.com/Hoyoll/brigg/lib"
 
 var (
 	Trees *lib.Barrel[Tree] = &lib.Barrel[Tree]{
-		Items: make([]Tree, 1000),
+		Items: make([]Tree, 1, 1000),
 	}
-
 	Leaves *lib.Barrel[Leaf] = &lib.Barrel[Leaf]{
-		Items: make([]Leaf, 1000),
+		Items: make([]Leaf, 1, 1000),
 	}
-	Bones *lib.Barrel[Root] = &lib.Barrel[Root]{
-		Items: make([]Root, 1000),
+	Bones *lib.Barrel[Element] = &lib.Barrel[Element]{
+		Items: make([]Element, 1, 1000),
 	}
 	Styles *lib.Barrel[Style] = &lib.Barrel[Style]{
-		Items: make([]Style, 1000),
-	}
-	Listens *lib.Barrel[Listen] = &lib.Barrel[Listen]{
-		Items: make([]Listen, 1000),
+		Items: make([]Style, 1, 1000),
 	}
 	States *lib.Barrel[StateMap] = &lib.Barrel[StateMap]{
-		Items: make([]StateMap, 1000),
+		Items: make([]StateMap, 1, 1000),
 	}
 )
 
-func Build(g Genus) *Tree {
-	var r Root
-	switch g {
-	case BOX:
-		r = &Box{}
-	default:
-		r = &Box{}
+var (
+	Boxes *lib.Barrel[Box] = &lib.Barrel[Box]{
+		Items: make([]Box, 1, 1000),
 	}
-	el := Bones.Add(r)
+	Images *lib.Barrel[Image] = &lib.Barrel[Image]{
+		Items: make([]Image, 1, 1000),
+	}
+	Texts *lib.Barrel[Text] = &lib.Barrel[Text]{
+		Items: make([]Text, 1, 1000),
+	}
+)
+
+var Composers *lib.Barrel[Composer]
+
+func Build(g Genus) *Tree {
 	leaf := Leaf{
-		Bone:  el,
-		Genus: g,
+		Bone: Bones.Add(Element{DEFID, DEFID}),
 	}
 	tree := Tree{
-		Self: Leaves.Add(leaf),
+		Genus:  g,
+		Self:   Leaves.Add(leaf),
+		Parent: DEFID,
 	}
 	id := Trees.Add(tree)
 	return &Trees.Items[id]
 }
-
-// func main() {
-// 	b := Build[Box](BOX)
-// }
