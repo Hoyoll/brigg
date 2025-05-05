@@ -167,6 +167,15 @@ func (i *Image) Render(s int) {
 	style := brigg.Styles.Items[s]
 	image, _ := style.GetImage()
 	img := cachedImg[image.Path]
-	rl.DrawTextureEx(img, rl.NewVector2(i.X, i.Y),
-		image.Rotate, image.Scale, image.Tint)
+
+	width := float32(img.Width) * image.Scale
+	height := float32(img.Height) * image.Scale
+
+	src := rl.NewRectangle(0, 0, float32(img.Width), float32(img.Height))
+
+	dst := rl.NewRectangle(i.X+width/2, i.Y+height/2, width, height)
+
+	origin := rl.NewVector2(width/2, height/2)
+
+	rl.DrawTexturePro(img, src, dst, origin, image.Rotate, image.Tint)
 }

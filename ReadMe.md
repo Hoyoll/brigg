@@ -106,5 +106,4 @@ func main() {
 	renderer := raylib.Renderer(800, 600, "It Works!")
 	renderer.Render(id, 20)
 }
-
 ```
