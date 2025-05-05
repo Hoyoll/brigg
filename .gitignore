@@ -2,3 +2,4 @@ test.exe
 /test/
 go.sum
 .gitignore
+/renderer/
