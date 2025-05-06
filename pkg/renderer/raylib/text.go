@@ -81,10 +81,10 @@ func (b *Text) CalcPos(treeid int) {
 					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft, b.Y+Cc.PaddingTop)
 					continue
 				}
-				offsetX -= Cc.PaddingRight + cons.Gap
-				Tree.Renderer.SetPos(offsetX, offsetY-Cc.PaddingBottom+cons.Gap)
-				x, _ := Tree.Renderer.GetDim()
-				offsetX -= x + Cc.PaddingLeft
+				x, y := Tree.Renderer.GetDim()
+				offsetX -= Cc.PaddingRight + x
+				Tree.Renderer.SetPos(offsetX, offsetY-(Cc.PaddingBottom+y))
+				offsetX -= Cc.PaddingLeft + cons.Gap
 			}
 		} else {
 			for i := length - 1; i >= 0; i-- {
@@ -97,10 +97,10 @@ func (b *Text) CalcPos(treeid int) {
 					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft, b.Y+Cc.PaddingTop)
 					continue
 				}
-				offsetY -= Cc.PaddingBottom + cons.Gap
-				Tree.Renderer.SetPos(offsetX-Cc.PaddingRight+cons.Gap, offsetY)
-				_, y := Tree.Renderer.GetDim()
-				offsetY -= y + Cc.PaddingTop
+				x, y := Tree.Renderer.GetDim()
+				offsetY -= Cc.PaddingBottom + y
+				Tree.Renderer.SetPos(offsetX-(Cc.PaddingRight+x), offsetY)
+				offsetY -= cons.Gap + Cc.PaddingTop
 			}
 		}
 	default:
@@ -162,6 +162,9 @@ func (b *Text) CheckIO(element int, childs []int) (bool, bool) {
 func (t *Text) Render(s int) {
 	style := brigg.Styles.Items[s]
 	text, _ := style.GetText()
-	rl.DrawTextEx(cachedFont[text.Font], text.Text,
-		rl.NewVector2(t.X, t.Y), text.Sizing, text.Spacing, text.Tint)
+	dst := rl.NewVector2(t.X+t.Width/2, t.Y+t.Height/2)
+	origin := rl.NewVector2(t.Width/2, t.Height/2)
+	rl.DrawTextPro(cachedFont[text.Font], text.Text,
+		dst, origin, text.Rotate, text.Sizing, text.Spacing,
+		text.Tint)
 }

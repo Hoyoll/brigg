@@ -159,10 +159,10 @@ func (b *Box) CalcPos(treeid int) {
 					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft, b.Y+Cc.PaddingTop)
 					continue
 				}
-				offsetX -= Cc.PaddingRight + cons.Gap
-				Tree.Renderer.SetPos(offsetX, offsetY-Cc.PaddingBottom+cons.Gap)
-				x, _ := Tree.Renderer.GetDim()
-				offsetX -= x + Cc.PaddingLeft
+				x, y := Tree.Renderer.GetDim()
+				offsetX -= Cc.PaddingRight + x
+				Tree.Renderer.SetPos(offsetX, offsetY-(Cc.PaddingBottom+y))
+				offsetX -= Cc.PaddingLeft + cons.Gap
 			}
 		} else {
 			for i := length - 1; i >= 0; i-- {
@@ -175,10 +175,10 @@ func (b *Box) CalcPos(treeid int) {
 					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft, b.Y+Cc.PaddingTop)
 					continue
 				}
-				offsetY -= Cc.PaddingBottom + cons.Gap
-				Tree.Renderer.SetPos(offsetX-Cc.PaddingRight+cons.Gap, offsetY)
-				_, y := Tree.Renderer.GetDim()
-				offsetY -= y + Cc.PaddingTop
+				x, y := Tree.Renderer.GetDim()
+				offsetY -= Cc.PaddingBottom + y
+				Tree.Renderer.SetPos(offsetX-(Cc.PaddingRight+x), offsetY)
+				offsetY -= cons.Gap + Cc.PaddingTop
 			}
 		}
 	default:
@@ -243,12 +243,3 @@ func (b *Box) Render(s int) {
 	rec := rl.NewRectangle(b.X, b.Y, b.Width, b.Height)
 	rl.DrawRectangleRounded(rec, box.Radius, 10, box.Color)
 }
-
-// func unpack(tree int) (brigg.Constraint, brigg.Composer) {
-// 	Tree := brigg.Trees.Items[tree]
-// 	Cb := brigg.Bones.Items[Tree.Bones]
-// 	Cr := Tree.Renderer
-// 	Cs := brigg.Styles.Items[Cb.GetStyle()]
-// 	Cc := brigg.Constraints.Items[Cs.Constraint]
-// 	return Cc, Cr
-// }

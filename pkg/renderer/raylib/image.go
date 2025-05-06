@@ -85,10 +85,10 @@ func (img *Image) CalcPos(treeId int) {
 					Tree.Renderer.SetPos(img.X+Cc.PaddingLeft, img.Y+Cc.PaddingTop)
 					continue
 				}
-				offsetX -= Cc.PaddingRight + cons.Gap
-				Tree.Renderer.SetPos(offsetX, offsetY-Cc.PaddingBottom+cons.Gap)
-				x, _ := Tree.Renderer.GetDim()
-				offsetX -= x + Cc.PaddingLeft
+				x, y := Tree.Renderer.GetDim()
+				offsetX -= Cc.PaddingRight + x
+				Tree.Renderer.SetPos(offsetX, offsetY-(Cc.PaddingBottom+y))
+				offsetX -= Cc.PaddingLeft + cons.Gap
 			}
 		} else {
 			for i := length - 1; i >= 0; i-- {
@@ -101,10 +101,10 @@ func (img *Image) CalcPos(treeId int) {
 					Tree.Renderer.SetPos(img.X+Cc.PaddingLeft, img.Y+Cc.PaddingTop)
 					continue
 				}
-				offsetY -= Cc.PaddingBottom + cons.Gap
-				Tree.Renderer.SetPos(offsetX-Cc.PaddingRight+cons.Gap, offsetY)
-				_, y := Tree.Renderer.GetDim()
-				offsetY -= y + Cc.PaddingTop
+				x, y := Tree.Renderer.GetDim()
+				offsetY -= Cc.PaddingBottom + y
+				Tree.Renderer.SetPos(offsetX-(Cc.PaddingRight+x), offsetY)
+				offsetY -= cons.Gap + Cc.PaddingTop
 			}
 		}
 	default:
@@ -168,8 +168,8 @@ func (i *Image) Render(s int) {
 	image, _ := style.GetImage()
 	img := cachedImg[image.Path]
 
-	width := float32(img.Width) * image.Scale
-	height := float32(img.Height) * image.Scale
+	width := i.Width
+	height := i.Height
 
 	src := rl.NewRectangle(0, 0, float32(img.Width), float32(img.Height))
 

@@ -4,31 +4,31 @@ import "github.com/Hoyoll/brigg/lib"
 
 var (
 	Trees *lib.Barrel[Tree] = &lib.Barrel[Tree]{
-		Items: make([]Tree, 0, 1000),
+		Items: make([]Tree, 0, 100),
 	}
 	Bones *lib.Barrel[Element] = &lib.Barrel[Element]{
-		Items: make([]Element, 0, 1000),
+		Items: []Element{},
 	}
 	Styles *lib.Barrel[Style] = &lib.Barrel[Style]{
-		Items: make([]Style, 0, 1000),
+		Items: []Style{},
 	}
 	States *lib.Barrel[StateMap] = &lib.Barrel[StateMap]{
-		Items: make([]StateMap, 0, 1000),
+		Items: []StateMap{},
 	}
 )
 
 var (
 	Boxes *lib.Barrel[Box] = &lib.Barrel[Box]{
-		Items: make([]Box, 0, 1000),
+		Items: []Box{},
 	}
 	Images *lib.Barrel[Image] = &lib.Barrel[Image]{
-		Items: make([]Image, 0, 1000),
+		Items: []Image{},
 	}
 	Texts *lib.Barrel[Text] = &lib.Barrel[Text]{
-		Items: make([]Text, 0, 1000),
+		Items: []Text{},
 	}
 	Constraints *lib.Barrel[Constraint] = &lib.Barrel[Constraint]{
-		Items: make([]Constraint, 1, 1000),
+		Items: []Constraint{},
 	}
 )
 

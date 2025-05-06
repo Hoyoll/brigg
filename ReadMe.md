@@ -9,13 +9,15 @@ So, this is a UI rendering engine written in Go. It's like a declarative layout 
 ### Features:
 
 - **Declarative Layouts**: Just define stuff in Go structs and functions. No magic—just Go.
-- **Responsive**: Your layout reacts to screen size. Like, for real.
-- **Renderer Agnostic**: Use Raylib, or swap it for whatever renderer fits your fancy. It’s all decoupled, which means it’s kinda future-proof (I hope).
-- **Constraints**: Padding, margins, gaps, alignment. You know, all the layout-y things.
+- **Renderer Agnostic**: It shipped with Raylib, but you can swap it for whatever renderer fits your fancy. It’s all decoupled, which means it’s kinda future-proof (I hope).
+- **Constraints**: Padding, gaps, alignment. You know, all the layout-y things.
+
+### Warning!:
+- It is very low to the ground. This is NOT a UI library, i don't provide high level abstraction (not yet anyway) for let's say a button component. What you will get is a way to make that button. What is UI anyway? It just a bunch of rectangle all the way down
+
+- What you do get is a bunch of primitives. A way to make boxes, images, and text. That's it  
 
 ## How to Use
-
-You probably didn’t ask for this, but here’s a quick example:
 
 1. **Install it** (don’t blame me, okay?):
 
@@ -58,27 +60,26 @@ func child() int {
 	bone := root.Bone()
 	state := bone.State()
 	style := brigg.NewStyle()
+	constraint := brigg.Constraint{
+		PaddingRight: 10,
+		PaddingLeft:  10,
+	}
 	style.SetBox(brigg.Box{
 		Width:  100,
 		Height: 100,
 		Color:  rl.Red,
 	})
-	style.SetConstraint(brigg.Constraint{
-		PaddingRight: 10,
-		PaddingLeft:  10,
-	})
+	style.SetConstraint(constraint)
 	hstyle := brigg.NewStyle()
 	hstyle.SetBox(brigg.Box{
 		Width:  100,
 		Height: 100,
 		Color:  rl.Blue,
 	})
-	hstyle.SetConstraint(brigg.Constraint{
-		PaddingRight: 10,
-		PaddingLeft:  10,
-	})
+	hstyle.SetConstraint(constraint)
 	state.Add(brigg.DEFAULT, style)
 	state.Add(brigg.HOVER, hstyle)(func(s *brigg.Style) bool {
+		fmt.Print("Hovered!")
 		return false
 	})
 	root.Child(gchild(), gchild())

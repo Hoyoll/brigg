@@ -25,7 +25,6 @@ func (s *Style) GetText() (*Text, bool) {
 }
 
 func (s *Style) SetImage(image Image) {
-
 	s.Content[IMAGE] = Images.Add(image)
 }
 
@@ -60,6 +59,7 @@ type Box struct {
 type Text struct {
 	Spacing, Sizing float32
 	Text, Font      string
+	Rotate          float32
 	Tint            color.RGBA
 }
 
