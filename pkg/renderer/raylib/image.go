@@ -154,6 +154,16 @@ func (i *Image) CheckIO(element int, childs []int) (bool, bool) {
 		return cState == brigg.DEFAULT, bone.ChangeState(brigg.DEFAULT)
 	}
 
+	scroll := rl.GetMouseWheelMoveV()
+
+	if scroll.Y != 0 {
+		if scroll.Y > 0 {
+			return cState == brigg.SCROLL_UP, bone.ChangeState(brigg.SCROLL_UP)
+		} else {
+			return cState == brigg.SCROLL_DOWN, bone.ChangeState(brigg.SCROLL_DOWN)
+		}
+	}
+
 	for state, inputs := range bone.GetIO() {
 		if buttonDown(inputs) {
 			return cState == state, bone.ChangeState(state)

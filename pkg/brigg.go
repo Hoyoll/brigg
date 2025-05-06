@@ -2,6 +2,8 @@ package brigg
 
 import "github.com/Hoyoll/brigg/lib"
 
+// We create buffers for the UI tree here
+
 var (
 	Trees *lib.Barrel[Tree] = &lib.Barrel[Tree]{
 		Items: make([]Tree, 0, 100),
@@ -33,6 +35,8 @@ var (
 )
 
 var Composers *lib.Barrel[Composer]
+
+// You can create a new Branch from here
 
 func Build(g Genus) (*Tree, int) {
 	tree := Tree{

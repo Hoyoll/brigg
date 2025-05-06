@@ -43,6 +43,8 @@ func (b *Box) CalcDim(treeid int) {
 		}
 		switch box.Width {
 		case brigg.WRAP_CONTENT:
+			// var totalWidth float32 = 0
+			// var maxHeight float32 = 0
 			for _, v := range t.Branch {
 				Tree := &brigg.Trees.Items[v]
 				Cb := brigg.Bones.Items[Tree.Bones]
@@ -53,6 +55,7 @@ func (b *Box) CalcDim(treeid int) {
 				}
 				tempW, _ := Tree.Renderer.GetDim()
 				b.Width += tempW + (Cc.PaddingLeft + Cc.PaddingRight) + cons.Gap
+
 			}
 			b.Width += cons.Gap
 		case brigg.WINDOW:
@@ -220,6 +223,16 @@ func (b *Box) CheckIO(element int, childs []int) (bool, bool) {
 		return cState == brigg.DEFAULT, bone.ChangeState(brigg.DEFAULT)
 	}
 
+	scroll := rl.GetMouseWheelMoveV()
+
+	if scroll.Y != 0 {
+		if scroll.Y > 0 {
+			return cState == brigg.SCROLL_UP, bone.ChangeState(brigg.SCROLL_UP)
+		} else {
+			return cState == brigg.SCROLL_DOWN, bone.ChangeState(brigg.SCROLL_DOWN)
+		}
+	}
+
 	for state, inputs := range bone.GetIO() {
 		if buttonDown(inputs) {
 			return cState == state, bone.ChangeState(state)
@@ -240,6 +253,8 @@ func (b *Box) GetPos() (float32, float32) {
 func (b *Box) Render(s int) {
 	style := brigg.Styles.Items[s]
 	box, _ := style.GetBox()
+	// rl.BeginScissorMode()
+	// rl.EndScissorMode()
 	rec := rl.NewRectangle(b.X, b.Y, b.Width, b.Height)
 	rl.DrawRectangleRounded(rec, box.Radius, 10, box.Color)
 }
