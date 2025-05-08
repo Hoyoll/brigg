@@ -42,9 +42,8 @@ type Overflow int8
 
 const (
 	WRAP Overflow = iota
-	HIDDEN 
 	LEAK
-	SCROLL
+	HIDE
 )
 
 // Gravity defines layout direction inside a container.

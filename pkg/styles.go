@@ -69,9 +69,12 @@ func (s *Style) GetConstraint() *Constraint {
 // Used for layout and basic visual styling.
 type Box struct {
 
+	// Overflow
+	Overflow Overflow
+
 	// This is a way to determine a child ofset inside scroll
 	// mode
-	OffsetX, OffsetY float32
+	ContentOffsetX, ContentOffsetY float32
 
 	// Border radius
 	Radius float32
@@ -79,9 +82,6 @@ type Box struct {
 	// Dimensions
 	Height, Width       float32
 	MaxHeight, MaxWidth float32
-
-	// Overflow
-	Overflow Overflow
 
 	// Fill color
 	Color color.RGBA

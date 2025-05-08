@@ -8,8 +8,10 @@ import (
 type Box struct {
 	Width, Height float32
 	X, Y          float32
+	RowOrColumn   float32
 }
 
+// TO-DO: Refractor this piece of sh*t
 func (b *Box) CalcDim(treeid int) {
 	t := brigg.Trees.Items[treeid]
 	bone := brigg.Bones.Items[t.Bones]
@@ -30,7 +32,8 @@ func (b *Box) CalcDim(treeid int) {
 					continue
 				}
 				_, tempY := Tree.Renderer.GetDim()
-				tallest := tempY + (Cc.PaddingTop + Cc.PaddingBottom) + cons.Gap
+				tallest :=
+					tempY + (Cc.PaddingTop + Cc.PaddingBottom) + cons.Gap
 				if b.Height < tallest {
 					b.Height = tallest
 				}
@@ -41,10 +44,11 @@ func (b *Box) CalcDim(treeid int) {
 		default:
 			b.Height = box.Height
 		}
+		b.RowOrColumn = b.Height
 		switch box.Width {
 		case brigg.WRAP_CONTENT:
-			// var totalWidth float32 = 0
-			// var maxHeight float32 = 0
+			var totalWidth float32 = 0
+			var perOverflow bool = false
 			for _, v := range t.Branch {
 				Tree := &brigg.Trees.Items[v]
 				Cb := brigg.Bones.Items[Tree.Bones]
@@ -53,8 +57,33 @@ func (b *Box) CalcDim(treeid int) {
 				if Cc.Static {
 					continue
 				}
-				tempW, _ := Tree.Renderer.GetDim()
-				b.Width += tempW + (Cc.PaddingLeft + Cc.PaddingRight) + cons.Gap
+				w, _ := Tree.Renderer.GetDim()
+				tempWidth :=
+					w + (Cc.PaddingLeft + Cc.PaddingRight) + cons.Gap
+
+				if box.MaxWidth == 0 {
+					b.Width += tempWidth
+				}
+
+				totalWidth += tempWidth
+				overflowed := totalWidth >= box.MaxWidth
+
+				if overflowed {
+					perOverflow = true
+					totalWidth = 0
+					b.Width = box.MaxWidth
+					switch box.Overflow {
+					case brigg.HIDE, brigg.LEAK:
+						return
+					case brigg.WRAP:
+						b.Height += b.RowOrColumn
+						continue
+					}
+				}
+
+				if !perOverflow {
+					b.Width += tempWidth
+				}
 
 			}
 			b.Width += cons.Gap
@@ -64,25 +93,6 @@ func (b *Box) CalcDim(treeid int) {
 			b.Width = box.Width
 		}
 	case brigg.VERTICAL:
-		switch box.Height {
-		case brigg.WRAP_CONTENT:
-			for _, v := range t.Branch {
-				Tree := &brigg.Trees.Items[v]
-				Cb := brigg.Bones.Items[Tree.Bones]
-				Cs := brigg.Styles.Items[Cb.GetStyle()]
-				Cc := brigg.Constraints.Items[Cs.Constraint]
-				if Cc.Static {
-					continue
-				}
-				_, tempY := Tree.Renderer.GetDim()
-				b.Height += tempY + (Cc.PaddingTop + Cc.PaddingBottom) + cons.Gap
-			}
-			b.Height += cons.Gap
-		case brigg.WINDOW:
-			b.Height = float32(rl.GetScreenHeight())
-		default:
-			b.Height = box.Height
-		}
 		switch box.Width {
 		case brigg.WRAP_CONTENT:
 			for _, v := range t.Branch {
@@ -94,7 +104,8 @@ func (b *Box) CalcDim(treeid int) {
 					continue
 				}
 				tempW, _ := Tree.Renderer.GetDim()
-				widest := tempW + (Cc.PaddingLeft + Cc.PaddingRight) + cons.Gap
+				widest :=
+					tempW + (Cc.PaddingLeft + Cc.PaddingRight) + cons.Gap
 				if b.Width < widest {
 					b.Width = widest
 				}
@@ -104,6 +115,57 @@ func (b *Box) CalcDim(treeid int) {
 			b.Width = float32(rl.GetScreenWidth())
 		default:
 			b.Width = box.Width
+		}
+		b.RowOrColumn = b.Width
+		switch box.Height {
+		case brigg.WRAP_CONTENT:
+			var totalHeight float32
+			var perOverflow bool = false
+			for _, v := range t.Branch {
+				tree := &brigg.Trees.Items[v]
+				cb := brigg.Bones.Items[tree.Bones]
+				cs := brigg.Styles.Items[cb.GetStyle()]
+				cc := brigg.Constraints.Items[cs.Constraint]
+
+				if cc.Static {
+					continue
+				}
+
+				_, h := tree.Renderer.GetDim()
+				tempHeight :=
+					h + cc.PaddingTop + cc.PaddingBottom + cons.Gap
+
+				if box.MaxHeight == 0 {
+					b.Height += tempHeight
+					continue
+				}
+
+				totalHeight += tempHeight
+				overflowed := totalHeight >= box.MaxHeight
+
+				if overflowed {
+					perOverflow = true
+					totalHeight = 0
+					b.Height = box.MaxHeight
+					switch box.Overflow {
+					case brigg.HIDE, brigg.LEAK:
+						return
+					case brigg.WRAP:
+						b.Width += b.RowOrColumn
+						continue
+					}
+				}
+
+				if !perOverflow {
+					b.Height += tempHeight
+				}
+			}
+			b.Height += cons.Gap
+		case brigg.WINDOW:
+			b.Height = float32(rl.GetScreenHeight())
+
+		default:
+			b.Height = box.Height
 		}
 	}
 }
@@ -117,33 +179,38 @@ func (b *Box) CalcPos(treeid int) {
 	switch cons.Align {
 	case brigg.START:
 		offsetX, offsetY := b.X, b.Y
-		if cons.Gravity == brigg.HORIZONTAL {
+		switch cons.Gravity {
+		case brigg.HORIZONTAL:
 			for _, v := range t.Branch {
 				Tree := &brigg.Trees.Items[v]
 				Cb := brigg.Bones.Items[Tree.Bones]
 				Cs := brigg.Styles.Items[Cb.GetStyle()]
 				Cc := brigg.Constraints.Items[Cs.Constraint]
 				if Cc.Static {
-					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft, b.Y+Cc.PaddingTop)
+					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft,
+						b.Y+Cc.PaddingTop)
 					continue
 				}
 				offsetX += Cc.PaddingLeft + cons.Gap
-				Tree.Renderer.SetPos(offsetX, offsetY+Cc.PaddingTop+cons.Gap)
+				Tree.Renderer.SetPos(offsetX,
+					offsetY+Cc.PaddingTop+cons.Gap)
 				w, _ := Tree.Renderer.GetDim()
 				offsetX += w + Cc.PaddingRight
 			}
-		} else {
+		case brigg.VERTICAL:
 			for _, v := range t.Branch {
 				Tree := &brigg.Trees.Items[v]
 				Cb := brigg.Bones.Items[Tree.Bones]
 				Cs := brigg.Styles.Items[Cb.GetStyle()]
 				Cc := brigg.Constraints.Items[Cs.Constraint]
 				if Cc.Static {
-					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft, b.Y+Cc.PaddingTop)
+					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft,
+						b.Y+Cc.PaddingTop)
 					continue
 				}
 				offsetY += Cc.PaddingTop + cons.Gap
-				Tree.Renderer.SetPos(offsetX+Cc.PaddingLeft+cons.Gap, offsetY)
+				Tree.Renderer.SetPos(offsetX+Cc.PaddingLeft+cons.Gap,
+					offsetY)
 				_, y := Tree.Renderer.GetDim()
 				offsetY += y + Cc.PaddingBottom
 			}
@@ -151,7 +218,8 @@ func (b *Box) CalcPos(treeid int) {
 	case brigg.END:
 		offsetX, offsetY := b.X+b.Width, b.Y+b.Height
 		length := len(t.Branch)
-		if cons.Gravity == brigg.HORIZONTAL {
+		switch cons.Gravity {
+		case brigg.HORIZONTAL:
 			for i := length - 1; i >= 0; i-- {
 				v := t.Branch[i]
 				Tree := &brigg.Trees.Items[v]
@@ -159,15 +227,17 @@ func (b *Box) CalcPos(treeid int) {
 				Cs := brigg.Styles.Items[Cb.GetStyle()]
 				Cc := brigg.Constraints.Items[Cs.Constraint]
 				if Cc.Static {
-					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft, b.Y+Cc.PaddingTop)
+					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft,
+						b.Y+Cc.PaddingTop)
 					continue
 				}
 				x, y := Tree.Renderer.GetDim()
 				offsetX -= Cc.PaddingRight + x
-				Tree.Renderer.SetPos(offsetX, offsetY-(Cc.PaddingBottom+y))
+				Tree.Renderer.SetPos(offsetX,
+					offsetY-(Cc.PaddingBottom+y))
 				offsetX -= Cc.PaddingLeft + cons.Gap
 			}
-		} else {
+		case brigg.VERTICAL:
 			for i := length - 1; i >= 0; i-- {
 				v := t.Branch[i]
 				Tree := &brigg.Trees.Items[v]
@@ -175,12 +245,14 @@ func (b *Box) CalcPos(treeid int) {
 				Cs := brigg.Styles.Items[Cb.GetStyle()]
 				Cc := brigg.Constraints.Items[Cs.Constraint]
 				if Cc.Static {
-					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft, b.Y+Cc.PaddingTop)
+					Tree.Renderer.SetPos(b.X+Cc.PaddingLeft,
+						b.Y+Cc.PaddingTop)
 					continue
 				}
 				x, y := Tree.Renderer.GetDim()
 				offsetY -= Cc.PaddingBottom + y
-				Tree.Renderer.SetPos(offsetX-(Cc.PaddingRight+x), offsetY)
+				Tree.Renderer.SetPos(offsetX-(Cc.PaddingRight+x),
+					offsetY)
 				offsetY -= cons.Gap + Cc.PaddingTop
 			}
 		}
@@ -200,7 +272,8 @@ func (b *Box) CheckIO(element int, childs []int) (bool, bool) {
 	cState := bone.CState
 
 	rec := rl.NewRectangle(b.X, b.Y, b.Width, b.Height)
-	mouse := rl.NewVector2(float32(rl.GetMouseX()), float32(rl.GetMouseY()))
+	mouse := rl.NewVector2(float32(rl.GetMouseX()),
+		float32(rl.GetMouseY()))
 
 	mover := rl.CheckCollisionPointRec(mouse, rec)
 
