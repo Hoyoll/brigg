@@ -1,6 +1,8 @@
 package raylib
 
 import (
+	"fmt"
+
 	brigg "github.com/Hoyoll/brigg/pkg"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -66,7 +68,7 @@ func (b *Box) CalcDim(treeid int) {
 				}
 
 				totalWidth += tempWidth
-				overflowed := totalWidth >= box.MaxWidth
+				overflowed := totalWidth > box.MaxWidth
 
 				if overflowed {
 					perOverflow = true
@@ -141,8 +143,8 @@ func (b *Box) CalcDim(treeid int) {
 				}
 
 				totalHeight += tempHeight
-				overflowed := totalHeight >= box.MaxHeight
-
+				fmt.Print(totalHeight)
+				overflowed := totalHeight > box.MaxHeight
 				if overflowed {
 					perOverflow = true
 					totalHeight = 0
@@ -160,6 +162,7 @@ func (b *Box) CalcDim(treeid int) {
 					b.Height += tempHeight
 				}
 			}
+			// fmt.Print(b.RowOrColumn)
 			b.Height += cons.Gap
 		case brigg.WINDOW:
 			b.Height = float32(rl.GetScreenHeight())
@@ -175,6 +178,7 @@ func (b *Box) CalcPos(treeid int) {
 	bone := brigg.Bones.Items[t.Bones]
 	style := brigg.Styles.Items[bone.GetStyle()]
 	cons := style.GetConstraint()
+	box, _ := style.GetBox()
 
 	switch cons.Align {
 	case brigg.START:
@@ -196,6 +200,18 @@ func (b *Box) CalcPos(treeid int) {
 					offsetY+Cc.PaddingTop+cons.Gap)
 				w, _ := Tree.Renderer.GetDim()
 				offsetX += w + Cc.PaddingRight
+				if box.MaxWidth == 0 {
+					continue
+				}
+				if offsetX > box.MaxWidth {
+					switch box.Overflow {
+					case brigg.HIDE, brigg.LEAK:
+						continue
+					case brigg.WRAP:
+						offsetX = b.X
+						offsetY += b.RowOrColumn
+					}
+				}
 			}
 		case brigg.VERTICAL:
 			for _, v := range t.Branch {
@@ -213,6 +229,18 @@ func (b *Box) CalcPos(treeid int) {
 					offsetY)
 				_, y := Tree.Renderer.GetDim()
 				offsetY += y + Cc.PaddingBottom
+				if box.MaxHeight == 0 {
+					continue
+				}
+				if offsetY > box.MaxHeight {
+					switch box.Overflow {
+					case brigg.HIDE, brigg.LEAK:
+						break
+					case brigg.WRAP:
+						offsetY = b.Y
+						offsetX += b.RowOrColumn
+					}
+				}
 			}
 		}
 	case brigg.END:
@@ -236,6 +264,19 @@ func (b *Box) CalcPos(treeid int) {
 				Tree.Renderer.SetPos(offsetX,
 					offsetY-(Cc.PaddingBottom+y))
 				offsetX -= Cc.PaddingLeft + cons.Gap
+				if box.MaxWidth == 0 {
+					continue
+				}
+				if offsetX < 0 {
+					switch box.Overflow {
+					case brigg.HIDE, brigg.LEAK:
+						continue
+					case brigg.WRAP:
+						offsetX = b.X
+						offsetY -= b.RowOrColumn
+					}
+				}
+
 			}
 		case brigg.VERTICAL:
 			for i := length - 1; i >= 0; i-- {
@@ -254,6 +295,19 @@ func (b *Box) CalcPos(treeid int) {
 				Tree.Renderer.SetPos(offsetX-(Cc.PaddingRight+x),
 					offsetY)
 				offsetY -= cons.Gap + Cc.PaddingTop
+				if box.MaxHeight == 0 {
+					continue
+				}
+
+				if offsetY < 0 {
+					switch box.Overflow {
+					case brigg.HIDE, brigg.LEAK:
+						continue
+					case brigg.WRAP:
+						offsetY = b.Y
+						offsetX -= b.RowOrColumn
+					}
+				}
 			}
 		}
 	default:
